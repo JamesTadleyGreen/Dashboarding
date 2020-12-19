@@ -90,7 +90,6 @@ Pygments==2.6.1
 pylint==2.5.2
 pynvml==8.0.4
 pyparsing==2.4.7
-pypiwin32==223
 pyreadline==2.1
 pyrsistent==0.16.0
 python-dateutil==2.8.1
@@ -109,6 +108,8 @@ Send2Trash==1.5.0
 six==1.15.0
 sqlparse==0.4.1
 tensorboard-plugin-wit==1.7.0
+tensorflow-gpu==2.2.1
+tensorflow-gpu-estimator==2.2.0
 termcolor==1.1.0
 terminado==0.8.3
 testpath==0.4.4
