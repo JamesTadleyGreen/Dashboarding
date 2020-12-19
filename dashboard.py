@@ -18,13 +18,14 @@ waterfall_df = pd.read_csv("./Data/Waterfall.csv")
 # NAME DICTS --------------------------------------------------------
 portfolio_name_dict = {0: 'Simple Investment Strategy', 1: 'Credit Investment Strategy', 2: 'Agressive investment Strategy'}
 ALM_name_dict = {0: 'BO Base', 1: 'BO Downside'}
+waterfall_name_dict = {0: 'Premium TP', 1: 'Unwinding of Buyout', 2: 'Return of Buyout', 3: 'Capital Buffer', 4: 'Replayment of Capital', 5: 'Benefits Paid', 6: 'Return on Capital in'}
 
 
 # GRAPH FUNCTS --------------------------------------------------------
 def waterfall_filter(data, year, portfolio, basis, scenario):
     fig = go.Figure(go.Waterfall(
             measure = ["relative", "relative", "relative", "relative", "relative", "relative", "total"],
-            x = ["Premium TP", "Unwinding of Buyout", "Return of Buyout", "Capital Buffer", "Repayment of Capital", "Benefits Paid", "Return on Capital in"],
+            x = list(waterfall_name_dict.values()),
             textposition = "outside",
             #text = ["+60", "+80", "", "-40", "-20", "Total"],
             y = [i*j for i,j in zip([1,1,-1,1,-1,1,1], data[(data['Year']==year) & (data['Portfolio Basis']==portfolio) & (data['ALM Basis']==basis) & (data['Quantile']==scenario)]['Value'].to_list())],
@@ -35,9 +36,28 @@ def waterfall_filter(data, year, portfolio, basis, scenario):
     
     fig.update_layout(
             showlegend = False,
-            #height="90vh",
     )
     return fig
+
+def bullet_KPIs(data, year, portfolio, basis, scenario, old_val_list):
+    fig_list = []
+    for i, val in enumerate(old_val_list):
+        value = data[(data['Waterfall Element']==i) & (data['Year']==year) & (data['Portfolio Basis']==portfolio) & (data['ALM Basis']==basis) & (data['Quantile']==scenario)]['Value'].to_list()[0]
+        fig = go.Figure(go.Indicator(
+            mode = "number+delta",
+            delta = {'reference': val},
+            number = {'prefix': "£"},
+            value = value,
+            domain = {'x': [0.1, 1], 'y': [0.2, 0.9]},
+            title = {'text': waterfall_name_dict[i]}))
+        
+        fig.update_layout(
+            margin=dict(l=20, r=20, t=30, b=20)
+        )
+        
+        fig_list.append(fig)
+    
+    return fig_list
 
 # APP LAYOUT ------------------------------------------------------
 app.layout = html.Div(children=[
@@ -112,7 +132,7 @@ app.layout = html.Div(children=[
                         {'label': 'Downside', 'value': 2},
                         {'label': 'Severe Downside', 'value': 3},
                     ],
-                    value=0,
+                    value=1,
                     searchable=False,
                     clearable=False,
                     )
@@ -128,7 +148,7 @@ app.layout = html.Div(children=[
         },
         children = [
             dcc.Graph(
-                style={'width': '75vw', 'height': '80vh'},
+                style={'width': '75vw', 'height': '77vh'},
                 id='waterfall-graph',
                 config={'displayModeBar': False}
             ),
@@ -136,89 +156,63 @@ app.layout = html.Div(children=[
             html.Div(
                 style={
                 "display": "grid",
-                "gridTemplateRows": "10% 4% 10% 4% 10% 4% 10% 4% 10% 4% 10% 4% 10% 4%",
+                "gridTemplateRows": "5% 9.5% 5% 9.5% 5% 9.5% 5% 9.5% 5% 9.5% 5% 9.5% 5% 9.5% 5% 9.5% ",
                 },
                 children = [
-                    dbc.Card(
-                        [
-                        dbc.CardHeader("Premium TP"),
-                        dbc.CardBody("This is some text within a card body")
-                        ],
+                    dcc.Graph(
+                        style={'width': '20vw', 'height': '10vh'},
                         id='KPI-premium-tp',
-                        className="card-title",
-                        color="primary",
-                        outline=True,
+                        config={'displayModeBar': False},
+                        className = 'card-KPI'
                     ),
                     html.Div(),
-                    dbc.Card(
-                        [
-                        dbc.CardHeader("Unwinding of Buyout"),
-                        dbc.CardBody("This is some text within a card body")
-                        ],
+                    dcc.Graph(
+                        style={'width': '20vw', 'height': '10vh'},
                         id='KPI-unwinding-bo',
-                        className="card-title",
-                        color="primary",
-                        outline=True,
+                        config={'displayModeBar': False},
+                        className = 'card-KPI'
                     ),
                     html.Div(),
-                    dbc.Card(
-                        [
-                        dbc.CardHeader("Return of Buyout"),
-                        dbc.CardBody("This is some text within a card body")
-                        ],
+                    dcc.Graph(
+                        style={'width': '20vw', 'height': '10vh'},
                         id='KPI-return-bo',
-                        className="card-title",
-                        color="primary",
-                        outline=True,
+                        config={'displayModeBar': False},
+                        className = 'card-KPI'
                     ),
                     html.Div(),
-                    dbc.Card(
-                        [
-                        dbc.CardHeader("Capital Buffer"),
-                        dbc.CardBody("This is some text within a card body")
-                        ],
+                    dcc.Graph(
+                        style={'width': '20vw', 'height': '10vh'},
                         id='KPI-capital-buffer',
-                        className="card-title",
-                        color="primary",
-                        outline=True,
+                        config={'displayModeBar': False},
+                        className = 'card-KPI'
                     ),
                     html.Div(),
-                    dbc.Card(
-                        [
-                        dbc.CardHeader("Repayment of Capital"),
-                        dbc.CardBody("This is some text within a card body")
-                        ],
+                    dcc.Graph(
+                        style={'width': '20vw', 'height': '10vh'},
                         id='KPI-repayment-capital',
-                        className="card-title",
-                        color="primary",
-                        outline=True,
+                        config={'displayModeBar': False},
+                        className = 'card-KPI'
                     ),
                     html.Div(),
-                    dbc.Card(
-                        [
-                        dbc.CardHeader("Benefits Paid"),
-                        dbc.CardBody("This is some text within a card body")
-                        ],
+                    dcc.Graph(
+                        style={'width': '20vw', 'height': '10vh'},
                         id='KPI-benefits-paid',
-                        className="card-title",
-                        color="primary",
-                        outline=True,
+                        config={'displayModeBar': False},
+                        className = 'card-KPI'
                     ),
                     html.Div(),
-                    dbc.Card(
-                        [
-                        dbc.CardHeader("Return on Capital in"),
-                        dbc.CardBody("This is some text within a card body")
-                        ],
+                    dcc.Graph(
+                        style={'width': '20vw', 'height': '10vh'},
                         id='KPI-return-capital',
-                        className="card-title",
-                        color="primary",
-                        outline=True,
+                        config={'displayModeBar': False},
+                        className = 'card-KPI'
                     ),
                 ]
             )
         ]
-    )
+    ),
+    # Hidden div inside the app that stores the intermediate value
+    html.Div(id='intermediate-value', style={'display': 'none'})
 ])
 
 # APP CALLBACKS ------------------------------------------------------
@@ -230,38 +224,46 @@ app.layout = html.Div(children=[
 def update_year_value(value):
     return "Year: " + str(value)
 
-# KPIs
-@app.callback(
-    [Output("KPI-premium-tp", "children"),
-    Output("KPI-unwinding-bo", "children"),
-    Output("KPI-return-bo", "children"),
-    Output("KPI-capital-buffer", "children"),
-    Output("KPI-repayment-capital", "children"),
-    Output("KPI-benefits-paid", "children"),
-    Output("KPI-return-capital", "children")],
-    [Input('year-select', 'value'), 
-    Input('portfolio-select', 'value'), 
-    Input('ALM-select', 'value'), 
-    Input('quantile-select', 'value')]
-)
-def update_KPIs(year, portfolio, basis, scenario):
-    data = waterfall_df
-    f_d=data[(data['Year']==year) & (data['Portfolio Basis']==portfolio) & (data['ALM Basis']==basis) & (data['Quantile']==scenario)]['Value'].to_list()
-    return ["{:.0f}".format(i) for i in f_d]
-
-
-
-
 # GRAPHS
 @app.callback(
     Output('waterfall-graph', 'figure'),
     [Input('year-select', 'value'), 
     Input('portfolio-select', 'value'), 
     Input('ALM-select', 'value'), 
-    Input('quantile-select', 'value')]
+    Input('quantile-select', 'value'),]
 )
 def update_graph(year, portfolio, basis, scenario):
     return waterfall_filter(waterfall_df, year, portfolio, basis, scenario)
+
+# KPIS
+@app.callback(
+    [Output('KPI-premium-tp', 'figure'),
+    Output("KPI-unwinding-bo", "figure"),
+    Output("KPI-return-bo", "figure"),
+    Output("KPI-capital-buffer", "figure"),
+    Output("KPI-repayment-capital", "figure"),
+    Output("KPI-benefits-paid", "figure"),
+    Output("KPI-return-capital", "figure")],
+    [Input('year-select', 'value'), 
+    Input('portfolio-select', 'value'), 
+    Input('ALM-select', 'value'), 
+    Input('quantile-select', 'value'),
+    Input('intermediate-value', 'children')]
+)
+def update_KPI(year, portfolio, basis, scenario, old_val_list):
+    return bullet_KPIs(waterfall_df, year, portfolio, basis, scenario, old_val_list)
+
+# HIDDEN DATA
+@app.callback(
+    Output('intermediate-value', 'children'),
+    [Input('year-select', 'value'), 
+    Input('portfolio-select', 'value'), 
+    Input('ALM-select', 'value'), 
+    Input('quantile-select', 'value'),]
+)
+def update_hidden_data(year, portfolio, basis, scenario):
+    data = waterfall_df
+    return data[(data['Year']==7) & (data['Portfolio Basis']==0) & (data['ALM Basis']==0) & (data['Quantile']==1)]['Value'].to_list()
 
 if __name__ == '__main__':
     app.run_server(debug=True)

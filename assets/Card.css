@@ -1,20 +1,8 @@
-.card-body {
-    color: #999999;
-    margin-bottom: 7.5px;
-    margin-left: 7.5px;
-    margin-right: 7.5px;
-    display: block;
-    }
-  
-.card-header {
-    font-weight: bold;
-    font-size: 1.5em;
+.card-KPI {
+    font-size: 1.0em;
     margin-top: 0;
-    margin-bottom: 7.5px;
+    margin-bottom: 2px;
     margin-left: 7.5px;
     margin-right: 7.5px;
-    border-bottom: 1px solid #e5e5e5
-    }
-.card-title {
-    border: 2px solid #e5e5e5
+    border-bottom: 1px solid #d3d3d3;
     }
