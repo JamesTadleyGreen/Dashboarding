@@ -10,7 +10,7 @@ import pandas as pd
 from app import app, server
 
 # import all pages in the app
-from apps import return_on_capital, alm
+from apps import slicers, return_on_capital, alm
 
 # Colour Scheme -------------------------------------------------------
 pwc_colours = {'red': '#AD1B02','dark orange': '#D85604','orange': '#E88D14','yellow': '#F3BE26','pink': '#E669A2'}
@@ -71,14 +71,31 @@ for i in [2]:
         [State(f"navbar-collapse{i}", "is_open")],
     )(toggle_navbar_collapse)
 
-# embedding the navigation bar
+# LAYOUT ------------------------------------------------------------
 app.layout = html.Div([
     navbar,
+    html.Div(id='page-header'),
+    slicers.slicers[0],
     html.Div(id='page-content'),
     dcc.Location(id='url', refresh=False),
+    # Hidden div inside the app that stores the slicer values
+    dcc.Store(id='slicer-values', data=7),
 ])
 
 
+# CALLBACKS ---------------------------------------------------------
+# PAGE Header --------------------
+@app.callback(Output('page-header', 'children'),
+              [Input('url', 'pathname')])
+def display_page(pathname):
+    if pathname == '/RoC':
+        return return_on_capital.layout_header
+    elif pathname == '/ALM':
+        return alm.layout_header
+    else:
+        return return_on_capital.layout_header
+
+# PAGE CONTENT --------------------
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
 def display_page(pathname):
@@ -89,5 +106,12 @@ def display_page(pathname):
     else:
         return return_on_capital.layout
 
+# YEAR SLICER HEADERS
+@app.callback(
+    Output("year-slicer-header", "children"),
+    [Input('year-select', 'value')]
+)
+def update_year_value(value):
+    return "Year: " + str(value)
 if __name__ == '__main__':
     app.run_server(debug=True)

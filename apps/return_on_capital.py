@@ -3,7 +3,7 @@ import dash_table as dt
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_bootstrap_components as dbc
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
@@ -66,83 +66,15 @@ def bullet_KPIs(data, year, portfolio, basis, scenario, old_val_list):
     return fig_list
 
 # APP LAYOUT ------------------------------------------------------
-layout = html.Div(children=[
+# HEADER ----------------------------------------------------------
+layout_header = html.Div(children=[
     dbc.Container(
-        html.H4(children='Return on capital')
-        , className="ml-2"
+        html.H4(children='Return on capital'), className="ml-2"
     ),
+])
 
-    # Slicers
-    dbc.Container(fluid=True,children=
-        [
-            dbc.Row(
-                [
-                    dbc.Col(
-                        [
-                            html.Label('Year: 7', id='year-slicer-header'),
-                            dcc.Slider(
-                            id='year-select',
-                            min=1,
-                            max=20,
-                            marks = {1: '1', 20: '20'},
-                            value=7,
-                            included=False
-                            )
-                        ],
-                    ),
-                    dbc.Col(
-                        [
-                            html.Label('Portfolio:', id='portfolio-slicer-header'),
-                            dcc.Dropdown(
-                            id='portfolio-select',
-                            options=[
-                                {'label': 'Simple Investment Strategy', 'value': 0},
-                                {'label': 'Credit Investment Strategy', 'value': 1},
-                                {'label': 'Agressive Investment Strategy', 'value': 2},
-                            ],
-                            value=0,
-                            searchable=False,
-                            clearable=False,
-                            )
-                        ],
-                    ),
-                    dbc.Col(
-                        [
-                            html.Label('ALM Basis:', id='ALM-slicer-header'),
-                            dcc.Dropdown(
-                            id='ALM-select',
-                            options=[
-                                {'label': 'BO Base', 'value': 0},
-                                {'label': 'BO Downside', 'value': 1},
-                            ],
-                            value=0,
-                            searchable=False,
-                            clearable=False,
-                            )
-                        ],
-                    ),
-                    dbc.Col(
-                        [
-                            html.Label('Scenario:', id='quantile-slicer-header'),
-                            dcc.Dropdown(
-                            id='quantile-select',
-                            options=[
-                                {'label': 'Upside', 'value': 0},
-                                {'label': 'Base', 'value': 1},
-                                {'label': 'Downside', 'value': 2},
-                                {'label': 'Severe Downside', 'value': 3},
-                            ],
-                            value=1,
-                            searchable=False,
-                            clearable=False,
-                            )
-                        ],
-                    ),
-                ],
-            ),
-        ]
-    ),
-
+# BODY ------------------------------------------------------------
+layout = html.Div(children=[
     # Graphs
     html.Hr(style={"height": "3px", "border": "none", "background-color": website_colors['light grey']}), 
     
@@ -213,19 +145,11 @@ layout = html.Div(children=[
             , no_gutters=True)
         ]
     ),
-    # Hidden div inside the app that stores the intermediate value
-    html.Div(id='intermediate-value', style={'display': 'none'})
+    # Hidden div inside the app that stores the base case values
+    html.Div(id='base-value', style={'display': 'none'}),
 ])
 
 # APP CALLBACKS ------------------------------------------------------
-# SLICER HEADERS
-@app.callback(
-    Output("year-slicer-header", "children"),
-    [Input('year-select', 'value')]
-)
-def update_year_value(value):
-    return "Year: " + str(value)
-
 # GRAPHS
 @app.callback(
     Output('waterfall-graph', 'figure'),
@@ -250,20 +174,20 @@ def update_graph(year, portfolio, basis, scenario):
     Input('portfolio-select', 'value'), 
     Input('ALM-select', 'value'), 
     Input('quantile-select', 'value'),
-    Input('intermediate-value', 'children')]
+    Input('base-value', 'children')]
 )
 def update_KPI(year, portfolio, basis, scenario, old_val_list):
     return bullet_KPIs(waterfall_df, year, portfolio, basis, scenario, old_val_list)
 
-# HIDDEN DATA
+# BASE DATA
 @app.callback(
-    Output('intermediate-value', 'children'),
+    Output('base-value', 'children'),
     [Input('year-select', 'value'), 
     Input('portfolio-select', 'value'), 
     Input('ALM-select', 'value'), 
     Input('quantile-select', 'value'),]
 )
-def update_hidden_data(year, portfolio, basis, scenario):
+def update_base_data(year, portfolio, basis, scenario):
     data = waterfall_df
     return data[(data['Year']==7) & (data['Portfolio Basis']==0) & (data['ALM Basis']==0) & (data['Quantile']==1)]['Value'].to_list()
 
