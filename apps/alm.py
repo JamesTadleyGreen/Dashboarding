@@ -14,8 +14,8 @@ from app import app
 
 
 layout = html.Div(children=[
-    # Header
-    html.H1(children='Project King'),
-    # Subheader
-    html.H4(children='ALM')
+    dbc.Container(
+        html.H4(children='ALM')
+        , className="ml-2"
+    ),
 ])

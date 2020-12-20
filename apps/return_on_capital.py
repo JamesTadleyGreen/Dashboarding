@@ -54,7 +54,7 @@ def bullet_KPIs(data, year, portfolio, basis, scenario, old_val_list):
             number = {'prefix': "£", 'font': {'color': website_colors['grey']}},
             value = value,
             domain = {'x': [0.1, 1], 'y': [0.2, 0.9]},
-            title = {'text': waterfall_name_dict[i], 'font': {'color': website_colors['dark grey']}}
+            title = {'text': f'<b>{waterfall_name_dict[i]}</b>', 'font': {'color': website_colors['dark grey']}}
         ))
         
         fig.update_layout(
@@ -67,13 +67,13 @@ def bullet_KPIs(data, year, portfolio, basis, scenario, old_val_list):
 
 # APP LAYOUT ------------------------------------------------------
 layout = html.Div(children=[
-    # Header
-    html.H1(children='Project King'),
-    # Subheader
-    html.H4(children='Return on capital.'),
+    dbc.Container(
+        html.H4(children='Return on capital')
+        , className="ml-2"
+    ),
 
     # Slicers
-    dbc.Container(fluid=False,children=
+    dbc.Container(fluid=True,children=
         [
             dbc.Row(
                 [
@@ -146,18 +146,19 @@ layout = html.Div(children=[
     # Graphs
     html.Hr(style={"height": "3px", "border": "none", "background-color": website_colors['light grey']}), 
     
-    dbc.Container(fluid=False,children=
+    dbc.Container(fluid=True,children=
         [
             dbc.Row(
                 [
-                    dcc.Graph(
-                        style={'width': '75vw', 'height': '77vh'},
-                        id='waterfall-graph',
-                        config={'displayModeBar': False}
-                    ),
-                    html.Div(style={'border-left': '3px solid ' + website_colors['light grey'], 'height': '77vh', 'width': '3px', 'z-index': 10}),
-                    dbc.Col(children = 
-                        [
+                    dbc.Col(
+                        dcc.Graph(
+                            style={'height': '70vh'},
+                            id='waterfall-graph',
+                            config={'displayModeBar': False},
+                        )
+                    , width=9),
+                    dbc.Col(style={'border-left': '3px solid ' + website_colors['light grey']},
+                        children = [
                             dcc.Graph(
                                 style={'width': '20vw', 'height': '10vh'},
                                 id='KPI-premium-tp',
@@ -207,9 +208,9 @@ layout = html.Div(children=[
                                 className = 'card-KPI'
                             ),
                         ]
-                    )
+                    , width=3)
                 ]
-            )
+            , no_gutters=True)
         ]
     ),
     # Hidden div inside the app that stores the intermediate value

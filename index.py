@@ -1,12 +1,20 @@
+import dash
+import dash_table as dt
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
-
+from dash.dependencies import Input, Output, State
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
 from app import app, server
 
 # import all pages in the app
 from apps import return_on_capital, alm
+
+# Colour Scheme -------------------------------------------------------
+pwc_colours = {'red': '#AD1B02','dark orange': '#D85604','orange': '#E88D14','yellow': '#F3BE26','pink': '#E669A2'}
+website_colors = {'grey': '#7E7E7E', 'light grey': '#d3d3d3', 'dark grey': '#333333'}
 
 # building the navigation bar
 # https://github.com/facultyai/dash-bootstrap-components/blob/master/examples/advanced-component-usage/Navbars.py
@@ -27,10 +35,11 @@ navbar = dbc.Navbar(
                 # Use row and col to control vertical alignment of logo / brand
                 dbc.Row(
                     [
-                        dbc.Col(dbc.NavbarBrand("COVID-19 DASH", className="ml-2")),
+                        dbc.Col(dbc.NavbarBrand("Project King", className="ml-2")),
                     ],
                     align="center",
                     no_gutters=True,
+                    
                 ),
                 href="/home",
             ),
@@ -44,8 +53,8 @@ navbar = dbc.Navbar(
                 navbar=True,
             ),
         ]
-    ),
-    color="dark",
+    , fluid=True),
+    color=website_colors['grey'],
     dark=True,
     className="mb-4",
 )
@@ -64,9 +73,9 @@ for i in [2]:
 
 # embedding the navigation bar
 app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
     navbar,
-    html.Div(id='page-content')
+    html.Div(id='page-content'),
+    dcc.Location(id='url', refresh=False),
 ])
 
 
