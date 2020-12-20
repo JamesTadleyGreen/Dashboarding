@@ -17,5 +17,5 @@ layout = html.Div(children=[
     # Header
     html.H1(children='Project King'),
     # Subheader
-    html.H4(children='ALM.')
+    html.H4(children='ALM')
 ])
