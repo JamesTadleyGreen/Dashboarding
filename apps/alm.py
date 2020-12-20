@@ -40,6 +40,20 @@ def ALM_filter(data, portfolio, basis):
     )
     return fig
 
+# TEXT ------------------------------------------------------------
+alm_text = [f'''
+### Observations
+---
+* We see that for the upside scenario at year 20 we have a funding level of {ALM_df[(ALM_df['Portfolio Basis']==0) & (ALM_df['ALM Basis']==0) & (ALM_df['Quantile']==0) & (ALM_df['Year']==20)]['Value'].values*100}%.
+* The volitility of the strategy means that we get above average returns.
+* asd
+''',
+    f'''### Notes
+
+    We see an upper value of % and a lower value of %.
+    ''',
+]
+
 # APP LAYOUT ------------------------------------------------------
 # HEADER ----------------------------------------------------------
 layout_header = html.Div(children=[
@@ -55,10 +69,15 @@ layout = html.Div(children=[
     
     dbc.Container(fluid=True, children=
         [
-            dcc.Graph(
-                style={'height': '70vh'},
-                id='alm-graph',
-                config={'displayModeBar': False},
+            dbc.Col(children =
+                [
+                    dcc.Graph(
+                        style={'height': '70vh'},
+                        id='alm-graph',
+                        config={'displayModeBar': False},
+                    ),
+                    dcc.Markdown(alm_text[0])
+                ]
             )
         ]
     )
