@@ -54,7 +54,7 @@ def bullet_KPIs(data, year, portfolio, basis, scenario, old_val_list):
             number = {'prefix': "£", 'font': {'color': website_colors['grey']}},
             value = value,
             domain = {'x': [0.1, 1], 'y': [0.2, 0.9]},
-            title = {'text': f'<b>{waterfall_name_dict[i]}</b>', 'font': {'color': website_colors['dark grey']}}
+            title = {'text': f"<span style='font-size:0.7em'><b>{waterfall_name_dict[i]}</b></span>", 'font': {'color': website_colors['dark grey']}}
         ))
         
         fig.update_layout(

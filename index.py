@@ -87,7 +87,7 @@ app.layout = html.Div([
 # PAGE Header --------------------
 @app.callback(Output('page-header', 'children'),
               [Input('url', 'pathname')])
-def display_page(pathname):
+def display_page_header(pathname):
     if pathname == '/RoC':
         return return_on_capital.layout_header
     elif pathname == '/ALM':
