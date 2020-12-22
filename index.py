@@ -75,7 +75,7 @@ for i in [2]:
 app.layout = html.Div([
     navbar,
     html.Div(id='page-header'),
-    slicers.slicers[0],
+    html.Div(id='slicers'),
     html.Div(id='page-content'),
     dcc.Location(id='url', refresh=False),
     # Hidden div inside the app that stores the slicer values
@@ -84,7 +84,7 @@ app.layout = html.Div([
 
 
 # CALLBACKS ---------------------------------------------------------
-# PAGE Header --------------------
+# PAGE HEADER --------------------
 @app.callback(Output('page-header', 'children'),
               [Input('url', 'pathname')])
 def display_page_header(pathname):
@@ -94,6 +94,17 @@ def display_page_header(pathname):
         return alm.layout_header
     else:
         return return_on_capital.layout_header
+
+# SLICERS --------------------
+@app.callback(Output('slicers', 'children'),
+              [Input('url', 'pathname')])
+def display_slicers(pathname):
+    if pathname == '/RoC':
+        return slicers.slicer_row([1,1,1,1])
+    elif pathname == '/ALM':
+        return slicers.slicer_row([0,1,1,0])
+    else:
+        return slicers.slicer_row([1,1,1,1])
 
 # PAGE CONTENT --------------------
 @app.callback(Output('page-content', 'children'),

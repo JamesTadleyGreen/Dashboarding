@@ -13,7 +13,85 @@ portfolio_name_dict = {0: 'Simple Investment Strategy', 1: 'Credit Investment St
 ALM_name_dict = {0: 'BO Base', 1: 'BO Downside'}
 scenario_dict = {0: 'Upside', 1: 'Base', 2: 'Downside', 3: 'Severe Downside'}
 
-# SLICERS -----------
+# Functions ---------------------------
+def slicer_row(l):
+    """Returns the correct slicers for the page
+
+    Args:
+        l (list): List of true / false corresponding to the slicers
+
+    Returns:
+        dbc Container: Container containing (get it) the slicers
+    """
+    slicers = [
+        dbc.Col(
+            [
+                html.Label('Year: 7', id='year-slicer-header'),
+                dcc.Slider(
+                id='year-select',
+                min=1,
+                max=20,
+                marks = {1: '1', 20: '20'},
+                value=7,
+                included=False
+                )
+            ],
+        ),
+        dbc.Col(
+            [
+                html.Label('Portfolio:', id='portfolio-slicer-header'),
+                dcc.Dropdown(
+                id='portfolio-select',
+                options=[
+                    {'label': portfolio_name_dict[0], 'value': 0},
+                    {'label': portfolio_name_dict[1], 'value': 1},
+                    {'label': portfolio_name_dict[2], 'value': 2},
+                ],
+                value=0,
+                searchable=False,
+                clearable=False,
+                )
+            ],
+        ),
+        dbc.Col(
+            [
+                html.Label('ALM Basis:', id='ALM-slicer-header'),
+                dcc.Dropdown(
+                id='ALM-select',
+                options=[
+                    {'label': ALM_name_dict[0], 'value': 0},
+                    {'label': ALM_name_dict[1], 'value': 1},
+                ],
+                value=0,
+                searchable=False,
+                clearable=False,
+                )
+            ],
+        ),
+        dbc.Col(
+            [
+                html.Label('Scenario:', id='quantile-slicer-header'),
+                dcc.Dropdown(
+                id='quantile-select',
+                options=[
+                    {'label': scenario_dict[0], 'value': 0},
+                    {'label': scenario_dict[1], 'value': 1},
+                    {'label': scenario_dict[2], 'value': 2},
+                    {'label': scenario_dict[3], 'value': 3},
+                ],
+                value=1,
+                searchable=False,
+                clearable=False,
+                )
+            ],
+        ),
+    ]
+
+    selected_slicers = [x if y==True else dbc.Col() for x, y in zip(slicers, l) ]
+    
+    return dbc.Container(fluid=True,children=[dbc.Row(selected_slicers)])
+
+
 slicers = [
     dbc.Container(fluid=True,children=
         [
