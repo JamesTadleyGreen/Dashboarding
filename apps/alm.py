@@ -76,7 +76,10 @@ layout = html.Div(children=[
                         id='alm-graph',
                         config={'displayModeBar': False},
                     ),
-                    dcc.Markdown(alm_text[0])
+                    dcc.Markdown(
+                        alm_text[0],
+                        className='text'
+                    )
                 ]
             )
         ]

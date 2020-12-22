@@ -10,7 +10,7 @@ import pandas as pd
 from app import app, server
 
 # import all pages in the app
-from apps import slicers, return_on_capital, alm
+from apps import slicers, return_on_capital, alm, report
 
 # Colour Scheme -------------------------------------------------------
 pwc_colours = {'red': '#AD1B02','dark orange': '#D85604','orange': '#E88D14','yellow': '#F3BE26','pink': '#E669A2'}
@@ -22,6 +22,7 @@ dropdown = dbc.DropdownMenu(
     children=[
         dbc.DropdownMenuItem("Return on Capital", href="/RoC"),
         dbc.DropdownMenuItem("ALM", href="/ALM"),
+        dbc.DropdownMenuItem("Stochastic model report", href="/report"),
     ],
     nav = True,
     in_navbar = True,
@@ -32,7 +33,6 @@ navbar = dbc.Navbar(
     dbc.Container(
         [
             html.A(
-                # Use row and col to control vertical alignment of logo / brand
                 dbc.Row(
                     [
                         dbc.Col(dbc.NavbarBrand("Project King", className="ml-2")),
@@ -92,6 +92,8 @@ def display_page_header(pathname):
         return return_on_capital.layout_header
     elif pathname == '/ALM':
         return alm.layout_header
+    elif pathname == '/report':
+        return report.layout_header
     else:
         return return_on_capital.layout_header
 
@@ -103,6 +105,8 @@ def display_slicers(pathname):
         return slicers.slicer_row([1,1,1,1])
     elif pathname == '/ALM':
         return slicers.slicer_row([0,1,1,0])
+    elif pathname == '/report':
+        return slicers.slicer_row([0,0,0,0])
     else:
         return slicers.slicer_row([1,1,1,1])
 
@@ -114,6 +118,8 @@ def display_page(pathname):
         return return_on_capital.layout
     elif pathname == '/ALM':
         return alm.layout
+    elif pathname == '/report':
+        return report.layout
     else:
         return return_on_capital.layout
 
