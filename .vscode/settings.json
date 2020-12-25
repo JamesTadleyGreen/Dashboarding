@@ -1,3 +1,4 @@
 {
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "python.pythonPath": "c:\\Users\\James\\OneDrive\\Documents\\git\\Dashboarding\\venv\\Scripts\\python.exe"
 }

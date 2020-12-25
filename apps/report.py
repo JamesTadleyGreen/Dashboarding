@@ -1,4 +1,5 @@
 # A longer file, more like a PDF with dynamic graphs and paragraphs of text that update based on selections.
+# This will be a tool for selecting portfolio design based on various metrics
 
 import dash
 import dash_table as dt
@@ -9,13 +10,20 @@ from dash.dependencies import Input, Output, State
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+import pandas_datareader as pdr
 import numpy as np
+import os
 
 from app import app
 
 # CONTENT ---------------------------------------------------------
 # DATA ---------------------------------------------------------
+#tickers = pdr.nasdaq_trader.get_nasdaq_symbols(retry_count=3, timeout=30, pause=None)[['Security Name']].reset_index()
+tickers = pd.read_csv('./Data/NASDAQ.csv')[['Symbol', 'Name']]
+tickers.columns = ['value', 'label']
+tickers = tickers.to_dict('records')
 random_df = pd.DataFrame(np.random.randint(0,100,size=(100, 1)), columns=list('A')).reset_index()
+
 
 # TEXT ---------------------------------------------------------
 para1 = [
@@ -49,10 +57,53 @@ para3 = [
 ]
 
 # GRAPHS ---------------------------------------------------------
-fig1 = px.scatter(random_df, x="A", y='index')
-print(random_df)
+def return_graph(ticker_list: list, start_date: str = '2020-01-01', end_date: str = 'today'):
+    """Returns the stock returns for a list of tickers
 
-graph2 = []
+    Args:
+        ticker_list (list): List of tickers to get the returns for
+        start_date (str): Date to set as value 1
+        end_date (str): End date to look to
+
+    Returns:
+        Figure: A graph shoing the returns for the list of tickers
+    """
+    # TODO Fix the scaling to 1, when the data doesn't exist at time = start_data all the entries become NAN.
+    # Case where nothing is selected
+    if ticker_list == []:
+        fig = go.Figure()
+        fig.update_layout(
+            showlegend = True,
+            template = 'plotly_white',
+        )
+        return fig
+    # Convert to pandas datetime
+    start = pd.to_datetime(start_date)
+    end = pd.to_datetime(end_date)
+    # Get data and convert we only take close data.
+    df = pdr.data.DataReader(ticker_list, 'yahoo', start , end)['Close'].fillna(1)
+    # Work out returns over the timeframe
+    df = df/df.iloc[0]
+    # Create the figure
+    fig = go.Figure()
+    # Loop over all tickers and create line plots
+    for ticker in ticker_list:
+        fig.add_trace(go.Scatter(
+            x=df.index,
+            y=df[ticker],
+            mode='lines',
+            name=ticker,
+        ))
+    # Change the template to be cleaner
+    fig.update_layout(
+            showlegend = True,
+            template = 'plotly_white',
+    )
+    return fig
+
+fig1 = px.scatter(random_df, x="A", y='index')
+
+fig2 = px.scatter(random_df, x="A", y='index')
 
 
 
@@ -75,13 +126,22 @@ layout = html.Div(children=
                         dbc.Col(
                             dcc.Markdown(para1[0]*3),
                             width=6,
-                            className='text'),
-                        dcc.Graph(
-                            figure=fig1,
-                            style={'width': '49vw'}, # Set this to be just below half view width so it appears next to text
-                            id='graph1',
-                            config={'displayModeBar': False},
-                        ),      
+                            className='text'
+                        ),
+                        dbc.Col(children=
+                            [
+                                dcc.Graph(
+                                    style={'width': '48vw'}, # Set this to be just below half view width so it appears next to text
+                                    id='returns-graph',
+                                    config={'displayModeBar': False},
+                                ), 
+                                dcc.Dropdown(
+                                    options=tickers,
+                                    id='ticker-dropdown',
+                                    multi=True
+                                ),
+                            ]
+                        ),     
                     ]
                 ),
             ]
@@ -91,3 +151,11 @@ layout = html.Div(children=
 
 
 # APP CALLBACKS ------------------------------------------------------
+@app.callback(
+    Output('returns-graph', 'figure'),
+    Input('ticker-dropdown', 'value'), 
+)
+def update_graph(ticker_list):
+    if ticker_list is None:
+        ticker_list = []
+    return return_graph(ticker_list)

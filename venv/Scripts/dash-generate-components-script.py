@@ -1,4 +1,4 @@
-#!c:\users\james\onedrive\documents\git\dashboarding\scripts\python.exe
+#!c:\users\james\onedrive\documents\git\dashboarding\venv\scripts\python.exe
 # EASY-INSTALL-ENTRY-SCRIPT: 'dash==1.18.1','console_scripts','dash-generate-components'
 import re
 import sys
