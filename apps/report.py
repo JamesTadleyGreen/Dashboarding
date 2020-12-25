@@ -153,7 +153,7 @@ layout = html.Div(children=
 # APP CALLBACKS ------------------------------------------------------
 @app.callback(
     Output('returns-graph', 'figure'),
-    Input('ticker-dropdown', 'value'), 
+    [Input('ticker-dropdown', 'value')], 
 )
 def update_graph(ticker_list):
     if ticker_list is None:
