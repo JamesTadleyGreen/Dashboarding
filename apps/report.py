@@ -68,7 +68,6 @@ def return_graph(ticker_list: list, start_date: str = '2020-01-01', end_date: st
     Returns:
         Figure: A graph shoing the returns for the list of tickers
     """
-    # TODO Fix the scaling to 1, when the data doesn't exist at time = start_data all the entries become NAN.
     # Case where nothing is selected
     if ticker_list == []:
         fig = go.Figure()
@@ -81,18 +80,21 @@ def return_graph(ticker_list: list, start_date: str = '2020-01-01', end_date: st
     start = pd.to_datetime(start_date)
     end = pd.to_datetime(end_date)
     # Get data and convert we only take close data.
-    df = pdr.data.DataReader(ticker_list, 'yahoo', start , end)['Close'].fillna(1)
-    # Work out returns over the timeframe
-    df = df/df.iloc[0]
+    df = pdr.data.DataReader(ticker_list, 'yahoo', start , end)['Close']
+    first_date_df = df.apply(pd.Series.first_valid_index)
+    # Create a list of series
+    ticker_series_list = [df[t] for t in ticker_list]
     # Create the figure
     fig = go.Figure()
-    # Loop over all tickers and create line plots
-    for ticker in ticker_list:
+    # Loop over all tickers and work out returns over the timeframe and create line plots
+    for series in ticker_series_list:
+        series = series/series[first_date_df[series.name]]
+        series = series.fillna(1)
         fig.add_trace(go.Scatter(
-            x=df.index,
-            y=df[ticker],
+            x=series.index,
+            y=series,
             mode='lines',
-            name=ticker,
+            name=series.name,
         ))
     # Change the template to be cleaner
     fig.update_layout(
@@ -135,6 +137,12 @@ layout = html.Div(children=
                                     id='returns-graph',
                                     config={'displayModeBar': False},
                                 ), 
+                                dcc.RangeSlider(
+                                    min=pd.to_datetime('01-01-2010'), #the first date
+                                    max=pd.to_datetime('today'), #the last date
+                                    value=[pd.to_datetime('01-01-2020'),pd.to_datetime('today')], #default: the first
+                                    marks = {}
+                                ),
                                 dcc.Dropdown(
                                     options=tickers,
                                     id='ticker-dropdown',
