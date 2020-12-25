@@ -131,7 +131,7 @@ layout = html.Div(children=
                         dbc.Col(children=
                             [
                                 dcc.Graph(
-                                    style={'width': '48vw'}, # Set this to be just below half view width so it appears next to text
+                                    #style={'width': '48vw'}, # Set this to be just below half view width so it appears next to text
                                     id='returns-graph',
                                     config={'displayModeBar': False},
                                 ), 
@@ -140,7 +140,9 @@ layout = html.Div(children=
                                     id='ticker-dropdown',
                                     multi=True
                                 ),
-                            ]
+                                
+                            ],
+                            width=6
                         ),     
                     ]
                 ),
