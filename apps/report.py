@@ -13,6 +13,7 @@ import pandas as pd
 import pandas_datareader as pdr
 import numpy as np
 import os
+import datetime
 
 from app import app
 
@@ -57,13 +58,15 @@ para3 = [
 ]
 
 # GRAPHS ---------------------------------------------------------
-def return_graph(ticker_list: list, start_date: str = '2020-01-01', end_date: str = 'today'):
+min_date = 1262304000 # 01-01-2010 unix timestamp
+min_slicer_date = 1577836800 # 01-01-2020 unix timestamp
+max_date = int(datetime.datetime.now().timestamp())
+def return_graph(ticker_list: list, date_range: list):
     """Returns the stock returns for a list of tickers
 
     Args:
         ticker_list (list): List of tickers to get the returns for
-        start_date (str): Date to set as value 1
-        end_date (str): End date to look to
+        date_selection (list): Date range for the x axis
 
     Returns:
         Figure: A graph shoing the returns for the list of tickers
@@ -77,8 +80,8 @@ def return_graph(ticker_list: list, start_date: str = '2020-01-01', end_date: st
         )
         return fig
     # Convert to pandas datetime
-    start = pd.to_datetime(start_date)
-    end = pd.to_datetime(end_date)
+    start = pd.to_datetime(date_range[0], unit='s', origin='unix')
+    end = pd.to_datetime(date_range[1], unit='s', origin='unix')
     # Get data and convert we only take close data.
     df = pdr.data.DataReader(ticker_list, 'yahoo', start , end)['Close']
     first_date_df = df.apply(pd.Series.first_valid_index)
@@ -138,10 +141,12 @@ layout = html.Div(children=
                                     config={'displayModeBar': False},
                                 ), 
                                 dcc.RangeSlider(
-                                    min=pd.to_datetime('01-01-2010'), #the first date
-                                    max=pd.to_datetime('today'), #the last date
-                                    value=[pd.to_datetime('01-01-2020'),pd.to_datetime('today')], #default: the first
-                                    marks = {}
+                                    id='date-slider',
+                                    min=min_date, # the first date
+                                    max=max_date, # the last date
+                                    value=[min_slicer_date, max_date],
+                                    step=2592000,
+                                    marks = {int(i): {'label': datetime.datetime.fromtimestamp(i).strftime("%Y")} for i in np.linspace(min_date,max_date,6)}
                                 ),
                                 dcc.Dropdown(
                                     options=tickers,
@@ -163,9 +168,10 @@ layout = html.Div(children=
 # APP CALLBACKS ------------------------------------------------------
 @app.callback(
     Output('returns-graph', 'figure'),
-    [Input('ticker-dropdown', 'value')], 
+    [Input('ticker-dropdown', 'value'),
+    Input('date-slider', 'value')], 
 )
-def update_graph(ticker_list):
+def update_graph(ticker_list, date_selection):
     if ticker_list is None:
         ticker_list = []
-    return return_graph(ticker_list)
+    return return_graph(ticker_list, date_selection)
