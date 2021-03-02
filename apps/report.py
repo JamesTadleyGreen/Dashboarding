@@ -23,82 +23,78 @@ from app import app
 tickers = pd.read_csv('./Data/NASDAQ.csv')[['Symbol', 'Name']]
 tickers.columns = ['value', 'label']
 tickers = tickers.to_dict('records')
-random_df = pd.DataFrame(np.random.randint(0,100,size=(100, 1)), columns=list('A')).reset_index()
 
+# Calculated from obtained data
+def calc_sharpe(df):
+    #TODO get a correct RFR rather than 2%
+    rfr = (1.02**(1/250))-1 
+    df = pd.read_json(df)
+    df = df.pct_change()
+    vol = df.std()
+    e_r = df.mean()
+    sharpe = (e_r-rfr)/vol # Assumed RFR of 0%
+    print(e_r, vol, sharpe)
+    return list(df.columns), vol.to_list(), sharpe.to_list()
 
 # TEXT ---------------------------------------------------------
-para1 = [
-    '''Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-    Etiam faucibus nibh in auctor viverra. Vestibulum volutpat dolor et magna hendrerit, 
-    eget aliquam arcu viverra. Nam turpis tortor, pulvinar ut bibendum nec, semper non ligula. 
-    Etiam ante quam, dictum vitae orci mollis, tempus vehicula mi. In aliquam, erat faucibus lacinia scelerisque, 
-    magna nibh bibendum nulla, vitae pellentesque mi nunc non nibh. Donec at mattis urna. Maecenas lorem sapien, 
-    dictum at ultricies vel, luctus vitae diam. Donec nec tempor est. Etiam pellentesque vestibulum neque, 
-    sit amet ullamcorper justo elementum sed.'''
-]
-
-para2 = [
-    '''Morbi placerat sed quam eget dignissim. Maecenas vitae sapien sapien. 
-    Ut blandit lorem vel viverra eleifend. Phasellus semper condimentum ante ut venenatis. 
-    Aenean augue neque, feugiat in pulvinar aliquam, tristique sed tortor. 
-    Proin vulputate a lorem vel tempus. Nullam nec arcu quam. Curabitur tempus volutpat augue, 
-    nec aliquam leo finibus at. In consectetur velit risus. Sed malesuada commodo libero, 
-    a mollis ante semper vel. Sed id risus varius, facilisis enim sed, vehicula lectus. 
-    Praesent semper non erat id porttitor. Aenean nec elementum odio.'''
-]
-
-para3 = [
-    '''Fusce in congue ipsum. Etiam ornare ut neque non sagittis. 
-    Integer ut est a magna faucibus posuere. Fusce in libero et ex 
-    imperdiet blandit ac ultrices nunc. Etiam ultricies ipsum eget arcu laoreet pharetra. 
-    Integer ac consectetur ligula. Vivamus ultrices mauris sem, luctus molestie tellus cursus vitae. 
-    Donec convallis egestas ipsum et vulputate. Pellentesque habitant morbi tristique 
-    senectus et netus et malesuada fames ac turpis egestas. Nulla luctus mi sed justo mattis vulputate. 
-    In vel quam auctor, feugiat justo et, varius eros.'''
-]
+def text1(*args):
+    text = [
+    f'''
+    The graph on the right shows the returns for any ticker on the NASDAQ exchange.
+    The slider can be used to select the date range for which you wish to see returns, 
+    the earliest date visible is either, 1st Jan 2010, or the earliest the ticker appeared on NASDAQ,
+    whichever is earlier.
+    \n
+    We can now perform some rudimentry analysis on the risk-reward for these stocks.
+    * The std(s) of the stock(s) ({', '.join(args[0])}) are {', '.join([str(i) for i in args[1]])}
+    * The Sharpe ratio(s) for the stock(s) ({', '.join(args[0])}) are {', '.join([str(i) for i in args[2]])}
+    '''
+    ]
+    return text
 
 # GRAPHS ---------------------------------------------------------
-min_date = 1262304000 # 01-01-2010 unix timestamp
-min_slicer_date = 1577836800 # 01-01-2020 unix timestamp
-max_date = int(datetime.datetime.now().timestamp())
-def return_graph(ticker_list: list, date_range: list):
+
+def return_graph(df: str, drawdown: bool):
     """Returns the stock returns for a list of tickers
 
     Args:
-        ticker_list (list): List of tickers to get the returns for
-        date_selection (list): Date range for the x axis
+        df (str): json representation of pd.dataframe
+        drawdown (bool): Display the drawdown graph
 
     Returns:
         Figure: A graph shoing the returns for the list of tickers
     """
+    # Convert json to pd.Dataframe
+    df = pd.read_json(df)
+    #print()
     # Case where nothing is selected
-    if ticker_list == []:
+    if df.empty:
         fig = go.Figure()
         fig.update_layout(
             showlegend = True,
             template = 'plotly_white',
         )
         return fig
-    # Convert to pandas datetime
-    start = pd.to_datetime(date_range[0], unit='s', origin='unix')
-    end = pd.to_datetime(date_range[1], unit='s', origin='unix')
-    # Get data and convert we only take close data.
-    df = pdr.data.DataReader(ticker_list, 'yahoo', start , end)['Close']
-    first_date_df = df.apply(pd.Series.first_valid_index)
     # Create a list of series
-    ticker_series_list = [df[t] for t in ticker_list]
+    ticker_series_list = [(1+df.pct_change()).cumprod()[t] for t in df.columns]
+    ticker_series_max_list = [(1+df.pct_change()).cumprod().cummax()[t] for t in df.columns]
     # Create the figure
     fig = go.Figure()
     # Loop over all tickers and work out returns over the timeframe and create line plots
-    for series in ticker_series_list:
-        series = series/series[first_date_df[series.name]]
-        series = series.fillna(1)
+    for i, series in enumerate(ticker_series_list):
         fig.add_trace(go.Scatter(
             x=series.index,
             y=series,
             mode='lines',
             name=series.name,
         ))
+        if drawdown:
+            fig.add_trace(go.Scatter(
+                x=ticker_series_max_list[i].index,
+                y=ticker_series_max_list[i],
+                mode='lines',
+                name=series.name,
+            ))
     # Change the template to be cleaner
     fig.update_layout(
             showlegend = True,
@@ -106,12 +102,28 @@ def return_graph(ticker_list: list, date_range: list):
     )
     return fig
 
-fig1 = px.scatter(random_df, x="A", y='index')
 
-fig2 = px.scatter(random_df, x="A", y='index')
+min_date = 1262304000 # 01-01-2010 unix timestamp
+min_slicer_date = 1577836800 # 01-01-2020 unix timestamp
+max_date = int(datetime.datetime.now().timestamp())
+def get_ticker_data(ticker_list: list, date_range: list):
+    """Returns the stock returns for a list of tickers
 
+    Args:
+        ticker_list (list): List of tickers to get the returns for
+        date_selection (list): Date range for the x axis
 
-
+    Returns:
+        DataFrame: Stock relative values for 1 nominal
+    """
+    # Case where nothing is selected
+    if ticker_list == []:
+        return pd.DataFrame()
+    # Convert to pandas datetime
+    start = pd.to_datetime(date_range[0], unit='s', origin='unix')
+    end = pd.to_datetime(date_range[1], unit='s', origin='unix')
+    # Get data and convert we only take close data.
+    return pdr.data.DataReader(ticker_list, 'yahoo', start , end)['Close']
 
 # APP LAYOUT ------------------------------------------------------
 # HEADER ----------------------------------------------------------
@@ -124,19 +136,19 @@ layout_header = html.Div(children=[
 # BODY ------------------------------------------------------------
 layout = html.Div(children=
     [
+        dcc.Store(id='ticker-data'),
         dbc.Container(fluid=True,children=
             [
                 dbc.Row(
                     [
                         dbc.Col(
-                            dcc.Markdown(para1[0]*3),
-                            width=6,
+                            dcc.Markdown(id='text1'),
+                            width=4,
                             className='text'
                         ),
                         dbc.Col(children=
                             [
                                 dcc.Graph(
-                                    #style={'width': '48vw'}, # Set this to be just below half view width so it appears next to text
                                     id='returns-graph',
                                     config={'displayModeBar': False},
                                 ), 
@@ -148,14 +160,34 @@ layout = html.Div(children=
                                     step=2592000,
                                     marks = {int(i): {'label': datetime.datetime.fromtimestamp(i).strftime("%Y")} for i in np.linspace(min_date,max_date,6)}
                                 ),
-                                dcc.Dropdown(
-                                    options=tickers,
-                                    id='ticker-dropdown',
-                                    multi=True
+                                dbc.Row(children=
+                                    [
+                                        dbc.Col(children=
+                                            [
+                                                dcc.Dropdown(
+                                                    options=tickers,
+                                                    id='ticker-dropdown',
+                                                    multi=True
+                                                ),
+                                            ],
+                                            width=10
+                                        ),
+                                        dbc.Col(children=
+                                            [
+                                                dcc.Checklist(
+                                                    id='drawdown-check',
+                                                    options=[
+                                                        {'label': 'Drawdown', 'value': 'On'},
+                                                    ],
+                                                    value=['On']
+                                                )
+                                            ],
+                                            width=2
+                                        ),
+                                    ]
                                 ),
-                                
                             ],
-                            width=6
+                            width=8
                         ),     
                     ]
                 ),
@@ -166,12 +198,28 @@ layout = html.Div(children=
 
 
 # APP CALLBACKS ------------------------------------------------------
-@app.callback(
-    Output('returns-graph', 'figure'),
+@app.callback(    
+    Output('ticker-data', 'data'),
     [Input('ticker-dropdown', 'value'),
     Input('date-slider', 'value')], 
 )
-def update_graph(ticker_list, date_selection):
+def filter_tickers_and_date(ticker_list, date_selection):
     if ticker_list is None:
         ticker_list = []
-    return return_graph(ticker_list, date_selection)
+    return get_ticker_data(ticker_list, date_selection).to_json()
+
+@app.callback(
+    Output('returns-graph', 'figure'),
+    [Input('ticker-data', 'data'), 
+    Input('drawdown-check', 'value')], 
+)
+def update_graph(df, drawdown):
+    return return_graph(df, drawdown)
+
+@app.callback(
+    Output('text1', 'children'),
+    Input('ticker-data', 'data'), 
+)
+def update_text1(df):
+    stock_names, var, sharpe = calc_sharpe(df)
+    return text1(stock_names, var, sharpe)
