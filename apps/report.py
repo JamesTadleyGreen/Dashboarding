@@ -33,7 +33,6 @@ def calc_sharpe(df):
     vol = df.std()
     e_r = df.mean()
     sharpe = (e_r-rfr)/vol # Assumed RFR of 0%
-    print(e_r, vol, sharpe)
     return list(df.columns), vol.to_list(), sharpe.to_list()
 
 # TEXT ---------------------------------------------------------
