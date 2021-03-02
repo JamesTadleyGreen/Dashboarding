@@ -218,7 +218,7 @@ def update_graph(df, drawdown):
 
 @app.callback(
     Output('text1', 'children'),
-    Input('ticker-data', 'data'), 
+    [Input('ticker-data', 'data')], 
 )
 def update_text1(df):
     stock_names, var, sharpe = calc_sharpe(df)
